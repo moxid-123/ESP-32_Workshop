@@ -1,0 +1,70 @@
+#include <WiFi.h>
+#include <WiFiClientSecure.h>
+#include <UniversalTelegramBot.h>
+
+// Replace with your network credentials
+const char* ssid = "YOUR_WIFI_SSID";
+const char* password = "YOUR_WIFI_PASSWORD";
+
+// Replace with your Telegram BOT Token (from BotFather)
+#define BOTtoken "YOUR_BOT_TOKEN"
+
+// Replace with your Telegram Chat ID
+#define CHAT_ID "YOUR_CHAT_ID"
+
+// Initialize WiFi client and bot
+WiFiClientSecure client;
+UniversalTelegramBot bot(BOTtoken, client);
+
+unsigned long lastCheckTime = 0;
+const int checkInterval = 2000;  // Check for new messages every 2s
+
+// Example output pin
+const int ledPin = 2;
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(ledPin, OUTPUT);
+
+  // Connect to Wi-Fi
+  WiFi.begin(ssid, password);
+  Serial.print("Connecting to WiFi");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nConnected to WiFi");
+  
+  // Required for Telegram SSL connection
+  client.setInsecure();  
+}
+
+void loop() {
+  if (millis() - lastCheckTime > checkInterval) {
+    int numNewMessages = bot.getUpdates(bot.last_message_received + 1);
+
+    while (numNewMessages) {
+      Serial.println("Got response from Telegram");
+      for (int i = 0; i < numNewMessages; i++) {
+        String chat_id = String(bot.messages[i].chat_id);
+        String text = bot.messages[i].text;
+
+        if (chat_id == CHAT_ID) {
+          if (text == "ON") {
+            digitalWrite(ledPin, HIGH);
+            bot.sendMessage(chat_id, "LED is ON", "");
+          }
+          else if (text == "OFF") {
+            digitalWrite(ledPin, LOW);
+            bot.sendMessage(chat_id, "LED is OFF", "");
+          }
+          else {
+            bot.sendMessage(chat_id, "Send 'ON' or 'OFF' to control LED", "");
+          }
+        }
+      }
+      numNewMessages = bot.getUpdates(bot.last_message_received + 1);
+    }
+    lastCheckTime = millis();
+  }
+}
