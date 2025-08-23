@@ -1,0 +1,29 @@
+#include <WiFi.h>
+#include <SinricPro.h>
+#include <SinricProSwitch.h>
+
+#define WIFI_SSID         "YourWiFiName"
+#define WIFI_PASS         "YourWiFiPassword"
+#define APP_KEY           "Your_SinricPro_App_Key"
+#define APP_SECRET        "Your_SinricPro_App_Secret"
+#define SWITCH_ID         "Your_Device_ID"
+
+bool onPowerState(const String &deviceId, bool &state) {
+  digitalWrite(2, state ? HIGH : LOW); // GPIO2 as output
+  return true;
+}
+
+void setup() {
+  pinMode(2, OUTPUT);
+  WiFi.begin(WIFI_SSID, WIFI_PASS);
+  while (WiFi.status() != WL_CONNECTED) delay(250);
+
+  SinricProSwitch &mySwitch = SinricPro[SWITCH_ID];
+  mySwitch.onPowerState(onPowerState);
+
+  SinricPro.begin(APP_KEY, APP_SECRET);
+}
+
+void loop() {
+  SinricPro.handle();
+}
