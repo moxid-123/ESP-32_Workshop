@@ -1,0 +1,42 @@
+#define BLYNK_TEMPLATE_ID   "YourTemplateID"
+#define BLYNK_DEVICE_NAME   "YourDeviceName"
+#define BLYNK_AUTH_TOKEN    "YourAuthToken"
+
+#include <WiFi.h>
+#include <WiFiClient.h>
+#include <BlynkSimpleEsp32.h>
+
+// WiFi credentials
+char ssid[] = "YourWiFiName";    
+char pass[] = "YourWiFiPassword";  
+
+// Virtual pin of the switch widget in Blynk IoT
+#define VPIN_SWITCH V1  
+
+// LED pin (you can use built-in LED or external LED)
+#define LED_PIN 2   // Onboard LED (GPIO 2 on ESP32)
+
+BLYNK_WRITE(VPIN_SWITCH)
+{
+  int value = param.asInt();  // Read switch value (0 or 1)
+  if (value == 1) {
+    digitalWrite(LED_PIN, HIGH);   // Turn LED ON
+  } else {
+    digitalWrite(LED_PIN, LOW);    // Turn LED OFF
+  }
+}
+
+void setup()
+{
+  Serial.begin(115200);
+
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, LOW);
+
+  Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
+}
+
+void loop()
+{
+  Blynk.run();
+}
